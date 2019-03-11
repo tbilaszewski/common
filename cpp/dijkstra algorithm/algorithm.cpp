@@ -1,67 +1,48 @@
-#include "logbuilder.cc"
+#include "algorithm.hpp"
 
-#define DEBUG_LOG 0
 typedef unsigned uint;
 
-#if DEBUG_LOG
-LogBuilder lb("debug log->", " ", true);
-LogBuilder li("debug log->", " ", true);
-#else
-LogBuilder lb("debug log->", " ", false);
-LogBuilder li("debug log->", " ", false);
-#endif
+#define DEBUG_LOG 0
 
-class Connection {
+// #if DEBUG_LOG
+// LogBuilder lb("debug", " ", true);
+// LogBuilder li("debug", " ", true);
+// #else
+LogBuilder lb("lb ", " ", false);
+LogBuilder li("li ", " ", false);
+// #endif
 
-private:
-  uint vertex1=0;
-  uint vertex2=0;
-  uint cost=0;
+Connection::Connection(uint _vertex1, uint _vertex2, uint _cost) :
+  vertex1(_vertex1),
+  vertex2(_vertex2),
+  cost(_cost)
+  {
+    lb.add("new connection c-tor (")
+      .add(vertex1)
+      .add(",")
+      .add(vertex2)
+      .add(") cost")
+      .add(cost)
+      .print();
+  }
 
-public:
-  Connection() {};
-  Connection(uint _vertex1, uint _vertex2, uint _cost) :
-    vertex1(_vertex1),
-    vertex2(_vertex2),
-    cost(_cost)
-    {
-      lb.add("new connection c-tor (")
-        .add(vertex1)
-        .add(",")
-        .add(vertex2)
-        .add(") cost")
-        .add(cost)
-        .print();
-    }
+  uint Connection::getVertex1() {
+    return this->vertex1;
+  }
+  uint Connection::getVertex2() {
+    return this->vertex2;
+  }
+  uint Connection::getCost() {
+    return this->cost;
+  }
 
-    uint getVertex1() {
-      return this->vertex1;
-    }
-    uint getVertex2() {
-      return this->vertex2;
-    }
-    uint getCost() {
-      return this->cost;
-    }
-
-};
-
-class Graph {
-
-private:
-  std::list<Connection*> graph_connections{};
-  std::string name;
-  std::vector<uint> vertexList;
-
-public:
-
-  Graph( std::string _name) :
+  Graph::Graph( std::string _name) :
     name(_name)
     {
       lb.add("Grap c-tor").print();
     }
 
-  Graph& addConnection( Connection* c ) {
+  Graph& Graph::addConnection( Connection* c ) {
     newVertexCheck( c->getVertex1() );
     newVertexCheck( c->getVertex2() );
     if( !hasConnection(c) ) {
@@ -73,7 +54,7 @@ public:
     return *this;
   }
 
-  Graph& getRandom(uint connections, uint vertex_number, uint max_cost) {
+  Graph& Graph::getRandom(uint connections, uint vertex_number, uint max_cost) {
     uint v1, v2, v3;
     for(uint i=0; i<connections; i++) {
          v1 = rand() % vertex_number+1;
@@ -85,9 +66,10 @@ public:
          }
          addConnection( new Connection(v1,v2,v3) );
     }
+    return *this;
   }
 
-  void printConnections() {
+  void Graph::printConnections() {
     LogBuilder connectionInfo("added connection", " ");
     for( auto connection: graph_connections) {
       connectionInfo.add(connection->getVertex1())
@@ -99,7 +81,7 @@ public:
     }
   }
 
-  bool hasConnection ( Connection* other) {
+  bool Graph::hasConnection ( Connection* other) {
     for( auto connection: graph_connections) {
       if( connection->getVertex1() == other->getVertex1() &&
           connection->getVertex2() == other->getVertex2() )
@@ -108,11 +90,11 @@ public:
     return false;
   }
 
-  uint getVertexNumber() {
+  uint Graph::getVertexNumber() {
     return vertexList.size();
   }
 
-  bool newVertexCheck( uint vertex) {
+  bool Graph::newVertexCheck( uint vertex) {
     for ( auto connection: graph_connections ) {
       if ( vertex == connection->getVertex1() || vertex == connection->getVertex2() ) {
         lb.add("new vertex NOT added").add(vertex).print();
@@ -124,22 +106,22 @@ public:
     return true;
   }
 
-  std::vector<uint> getVertexList() {
+  std::vector<uint> Graph::getVertexList() {
     return vertexList;
   }
 
-  std::list<Connection*> getGraphConnections() {
+  std::list<Connection*> Graph::getGraphConnections() {
     return graph_connections;
   }
 
-  Connection* getConnection( uint vertex1, uint vertex2 ) {
+  Connection* Graph::getConnection( uint vertex1, uint vertex2 ) {
     for( auto el : graph_connections ) {
       if( el->getVertex1() == vertex1 && el->getVertex2() == vertex2 )
         return el;
     }
   }
 
-  bool hasConnection( uint vertex1, uint vertex2 ) {
+  bool Graph::hasConnection( uint vertex1, uint vertex2 ) {
     for( auto &el : graph_connections ) {
       if( el->getVertex1() == vertex1 && el->getVertex2() == vertex2 )
         return true;
@@ -147,23 +129,7 @@ public:
     return false;
   }
 
-};
-
-class DijkstraAlgorithm {
-
-private:
-  Graph graph;
-  std::list<uint> Q{};
-  std::list<uint> S{};
-  std::vector<uint> vertexList{};
-  std::list<Connection*> connections{};
-  std::map<uint, int> d;
-  std::map<uint, int> p;
-  uint startVertex;
-  uint endVertex;
-
-
-  int findMIN(std::list<uint> Q, std::map<uint,int> d) {
+  int DijkstraAlgorithm::findMIN(std::list<uint> Q, std::map<uint,int> d) {
 
       int min_vec = *Q.begin();
       int min_cost = MAX;
@@ -185,7 +151,7 @@ private:
       return min_vec;
   }
 
-  bool contains(std::list<uint> Q, int vector) {
+  bool DijkstraAlgorithm::contains(std::list<uint> Q, int vector) {
       for( auto el: Q) {
           if( el == vector ) {
               lb.add("Q contains").add(vector).print();
@@ -195,7 +161,7 @@ private:
       return false;
   }
 
-  bool contains(std::vector<uint> Q, int vector) {
+  bool DijkstraAlgorithm::contains(std::vector<uint> Q, int vector) {
       for( auto el: Q) {
           if( el == vector ) {
               lb.add("Q contains").add(vector).print();
@@ -205,9 +171,9 @@ private:
       return false;
   }
 
-public:
-  DijkstraAlgorithm(Graph g) :
-    graph(g) {
+  DijkstraAlgorithm::DijkstraAlgorithm(Graph g) :
+    graph(g)
+  {
     vertexList = graph.getVertexList();
     for( auto vertex: vertexList ) {
       Q.push_back(vertex);
@@ -219,7 +185,7 @@ public:
     connections = graph.getGraphConnections();
   }
 
-  DijkstraAlgorithm& configureStart() {
+  DijkstraAlgorithm& DijkstraAlgorithm::configureStart() {
 
     LogBuilder addStartVertex( "Enter existing starting vertex" , " ");
     do {
@@ -230,7 +196,7 @@ public:
     return *this;
   }
 
-  DijkstraAlgorithm& configureEnd() {
+  DijkstraAlgorithm& DijkstraAlgorithm::configureEnd() {
 
     LogBuilder addEndVertex( "Enter existing ending vertex" , " ");
     do {
@@ -241,7 +207,7 @@ public:
     return *this;
   }
 
-  DijkstraAlgorithm& run() {
+  DijkstraAlgorithm& DijkstraAlgorithm::run() {
     lb.add("...run...").print();
     LogBuilder aLog("Algortihm", " ");
     aLog.add("started").print();
@@ -274,7 +240,7 @@ public:
     return *this;
   }
 
-  std::vector<uint> calculateShortestPath() {
+  std::vector<uint> DijkstraAlgorithm::calculateShortestPath() {
     std::vector<uint> path{endVertex};
       if( d.at(endVertex) != MAX ) {
       uint vertex = endVertex;
@@ -286,7 +252,7 @@ public:
     return path;
   }
 
-  DijkstraAlgorithm& showShortestPath() {
+  DijkstraAlgorithm& DijkstraAlgorithm::showShortestPath() {
     LogBuilder shortestPathInfo("Shortest path", " ");
     shortestPathInfo.add("from").add(startVertex).add("to").add(endVertex);
 
@@ -306,14 +272,14 @@ public:
     return *this;
   }
 
-  DijkstraAlgorithm& showCost() {
+  DijkstraAlgorithm& DijkstraAlgorithm::showCost() {
     LogBuilder costInfo("Total cost:", " ");
     costInfo.add( d.at(endVertex) ).print();
     //std::cout << "Total cost: " << d.at(endVertex) << std::endl;
     return *this;
   }
 
-  DijkstraAlgorithm& showCostArray() {
+  DijkstraAlgorithm& DijkstraAlgorithm::showCostArray() {
     LogBuilder costArr("Cost array:");
     costArr.add("\nvertex | cost\n");
     for(auto it=d.begin(); it!=d.end(); it++) {
@@ -324,5 +290,3 @@ public:
     //std::cout << std::endl;
     return *this;
   }
-
-};

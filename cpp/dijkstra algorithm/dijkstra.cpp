@@ -1,13 +1,5 @@
-#include <stdio.h>
-#include <vector>
-#include <list>
-#include <map>
-#include <string>
+#include "algorithm.hpp"
 #include <iostream>
-#include <climits>
-#include <type_traits>
-
-#include "algorithm.cc"
 
 int main()
 {
